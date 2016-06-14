@@ -1095,6 +1095,7 @@ user updates the rating. -->
 
     <!--Indicates what happens when the user taps on an item-->
     <string name="talkback_tapfor">tap for %1$s</string>
+    <string name="welcome_to_mv">Looks like you are near Mountain View - will you be joining us in persion this year?</string>
 
 
 </resources>
