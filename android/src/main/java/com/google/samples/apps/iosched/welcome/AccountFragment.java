@@ -15,10 +15,12 @@
  */
 package com.google.samples.apps.iosched.welcome;
 
+import android.Manifest;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,6 +45,8 @@ import static com.google.samples.apps.iosched.util.LogUtils.makeLogTag;
 public class AccountFragment extends WelcomeFragment
         implements WelcomeActivity.WelcomeActivityContent, RadioGroup.OnCheckedChangeListener {
     private static final String TAG = makeLogTag(AccountFragment.class);
+    private static final int REQUEST_GET_ACCOUNTS_PERMISSION = 101;
+
 
     private AccountManager mAccountManager;
     private List<Account> mAccounts;
@@ -61,9 +65,7 @@ public class AccountFragment extends WelcomeFragment
     public void onAttach(Activity activity) {
         super.onAttach(activity);
 
-        mAccountManager = AccountManager.get(activity);
-        mAccounts = new ArrayList<Account>(
-                Arrays.asList(mAccountManager.getAccountsByType(GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE)));
+        loadAccounts();
     }
 
     @Override
@@ -136,8 +138,34 @@ public class AccountFragment extends WelcomeFragment
             ((WelcomeFragmentContainer) mActivity).setPositiveButtonEnabled(false);
         }
 
+        return layout;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (!requestPermissionIfNeeded(new String[] {Manifest.permission.GET_ACCOUNTS}, REQUEST_GET_ACCOUNTS_PERMISSION)) {
+            showAccounts();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        LOGD(TAG, "onRequestPermissionResult() " + requestCode);
+        if (requestCode == REQUEST_GET_ACCOUNTS_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                showAccounts();
+            } else {
+                getActivity().finish();
+            }
+        }
+    }
+
+    private void showAccounts() {
+        loadAccounts();
+
         // Find the view
-        RadioGroup accountsContainer = (RadioGroup) layout.findViewById(R.id.welcome_account_list);
+        RadioGroup accountsContainer = (RadioGroup) getView().findViewById(R.id.welcome_account_list);
         accountsContainer.removeAllViews();
         accountsContainer.setOnCheckedChangeListener(this);
 
@@ -148,7 +176,11 @@ public class AccountFragment extends WelcomeFragment
             button.setText(account.name);
             accountsContainer.addView(button);
         }
+    }
 
-        return layout;
+    private void loadAccounts() {
+        mAccountManager = AccountManager.get(getActivity());
+        mAccounts = new ArrayList<Account>(
+                Arrays.asList(mAccountManager.getAccountsByType(GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE)));
     }
 }

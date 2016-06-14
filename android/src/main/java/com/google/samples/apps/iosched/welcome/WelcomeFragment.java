@@ -19,8 +19,11 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -225,5 +228,21 @@ public abstract class WelcomeFragment extends Fragment {
          * @param enabled true to enable it, false to disable it.
          */
         public void setNegativeButtonEnabled(Boolean enabled);
+    }
+
+    protected boolean requestPermissionIfNeeded(String[] permissions, int requestCode) {
+        //TODO handle all the permissions in the array!
+        int permissionCheck = ContextCompat.checkSelfPermission(getActivity(), permissions[0]);
+        if (permissionCheck == PackageManager.PERMISSION_DENIED) {
+
+            if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(), permissions[0])) {
+                //TODO Handle rationally!
+            } else {
+                requestPermissions(permissions, requestCode);
+            }
+
+            return true;
+        }
+        return false;
     }
 }
